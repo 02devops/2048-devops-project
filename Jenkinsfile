@@ -1,29 +1,35 @@
 pipeline {
   agent any
 
-  stages {
+  environment {
+    IMAGE_NAME = "2048-backend"
+    CONTAINER_NAME = "2048-backend"
+  }
 
-    stage('Clone') {
-      steps {
-        git 'https://github.com/02devops/2048-devops-project.git'
-      }
-    }
+  stages {
 
     stage('Build Docker Image') {
       steps {
-        sh 'docker build -t 2048-backend:latest .'
+        sh 'docker build -t $IMAGE_NAME:latest .'
       }
     }
 
-    stage('Deploy') {
+    stage('Stop Old Container') {
       steps {
         sh '''
-        docker stop 2048-backend || true
-        docker rm 2048-backend || true
+        docker stop $CONTAINER_NAME || true
+        docker rm $CONTAINER_NAME || true
+        '''
+      }
+    }
+
+    stage('Deploy New Container') {
+      steps {
+        sh '''
         docker run -d \
           -p 3000:3000 \
-          --name 2048-backend \
-          2048-backend:latest
+          --name $CONTAINER_NAME \
+          $IMAGE_NAME:latest
         '''
       }
     }
