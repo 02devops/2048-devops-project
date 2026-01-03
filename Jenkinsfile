@@ -2,27 +2,30 @@ pipeline {
   agent any
 
   stages {
+
     stage('Clone') {
       steps {
-        git 'https://github.com/your-username/2048-devops-project.git'
+        git 'https://github.com/02devops/2048-devops-project.git'
       }
     }
 
     stage('Build Docker Image') {
       steps {
-        sh 'docker build -t game-backend -f docker/Dockerfile .'
+        sh 'docker build -t 2048-backend:latest .'
       }
     }
 
     stage('Deploy') {
       steps {
         sh '''
-        docker stop game || true
-        docker rm game || true
-        docker run -d -p 3000:3000 --name game game-backend
+        docker stop 2048-backend || true
+        docker rm 2048-backend || true
+        docker run -d \
+          -p 3000:3000 \
+          --name 2048-backend \
+          2048-backend:latest
         '''
       }
     }
   }
 }
-[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[A[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[02devops[C[C[C[C[C[A[A[A[A[B[B[B[B[B[B[B[B[B[B[B[B[B[B[B[B[B[B[B[B[B[B[B
