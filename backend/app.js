@@ -4,43 +4,38 @@ const AWS = require('aws-sdk');
 const app = express();
 app.use(express.json());
 
-const dynamo = new AWS.DynamoDB.DocumentClient({
-  region: 'ap-south-1'
-});
+AWS.config.update({ region: 'ap-south-1' });
 
-app.get('/api/health', (req, res) => {
-  res.send('Backend is running');
-});
+const dynamo = new AWS.DynamoDB.DocumentClient();
+const TABLE = 'GameScores';
 
 app.post('/api/score', async (req, res) => {
-  const { playerId, score } = req.body;
-
-  const params = {
-    TableName: 'GameScores',
-    Item: {
-      playerId,
-      score,
-      timestamp: Date.now()
-    }
-  };
-
   try {
-    await dynamo.put(params).promise();
-    res.send('Score saved successfully');
+    const { playerId, score } = req.body;
+
+    if (!playerId || score === undefined) {
+      return res.status(400).json({ message: 'Invalid data' });
+    }
+
+    await dynamo.put({
+      TableName: TABLE,
+      Item: {
+        playerId,
+        score,
+        timestamp: Date.now()
+      }
+    }).promise();
+
+    res.json({ message: 'Score saved successfully' });
   } catch (err) {
-    res.status(500).send(err);
+    console.error(err);
+    res.status(500).json({ error: err.message });
   }
 });
 
 app.get('/api/scores', async (req, res) => {
-  try {
-    const data = await dynamo.scan({ TableName: 'GameScores' }).promise();
-    res.json(data.Items);
-  } catch (err) {
-    res.status(500).send(err);
-  }
+  const data = await dynamo.scan({ TableName: TABLE }).promise();
+  res.json(data.Items);
 });
 
-app.listen(3000, () => {
-  console.log('Backend running on port 3000');
-});
+app.listen(3000, () => console.log('Backend running on port 3000'));
